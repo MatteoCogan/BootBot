@@ -5,6 +5,7 @@ import json
 from datetime import datetime
 import subprocess
 import re
+import pycountry
 
 TOKEN = os.environ["BOT_TOKEN"]
 CHANNEL_ID1 = int(os.environ["CHANNEL_ID1"])
@@ -15,35 +16,18 @@ SCORES_PATH = "scores.json"
 # Points par rang
 POINTS_BY_RANK = [15, 10, 5]
 
-def extract_country_and_scores(message_content):
+def get_country_flag(country_name: str) -> str:
     """
-    Parse le message du bot pour en extraire le pays et les scores.
+    Retourne l'emoji drapeau correspondant au nom de pays fourni.
+    Si non trouvé, retourne une chaîne vide.
     """
-    lines = message_content.split("\n")
-    country = None
-    players = []
-
-    for line in lines:
-        # Cherche la ligne du type 🇦🇷 Daily Challenge XX
-        if line.startswith("🇦"):
-            match = re.search(r"Daily Challenge \d+ - (.+)", line)
-            if match:
-                country_raw = match.group(1)
-                country = normalize_country(country_raw)
-
-        # Cherche les lignes de classement
-        if line.startswith("🥇") or line.startswith("🥈") or line.startswith("🥉") or line.startswith("🍫"):
-            user_match = re.search(r"@[\w!\-\s]+", line)
-            if user_match:
-                players.append(user_match.group())
-
-    return country, players
-
-def normalize_country(raw):
-    """
-    Nettoie le nom du pays extrait (peut être personnalisé si besoin).
-    """
-    return raw.lower().split(",")[0].strip().replace(" ", "_")
+    try:
+        # Recherche par nom exact
+        country = pycountry.countries.lookup(country_name)
+        code = country.alpha_2.upper()
+        return chr(127397 + ord(code[0])) + chr(127397 + ord(code[1]))
+    except LookupError:
+        return ""
 
 def update_scores_json(country, players):
     if not os.path.exists(SCORES_PATH):
