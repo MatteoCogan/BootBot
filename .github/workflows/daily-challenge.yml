@@ -1,0 +1,31 @@
+name: Daily Challenge
+
+on:
+  schedule:
+    - cron: "0 4 * * *" # 6h en France
+
+  workflow_dispatch:
+    inputs:
+      run-now:
+        description: "Run the workflow manually"
+        required: false
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: |
+          pip install -r dailyChallenge/requirements.txt
+
+      - name: Run script
+        run: |
+          python dailyChallenge/dailyChallenge.py
