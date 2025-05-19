@@ -19,7 +19,6 @@ USERS_PATH = "dailyChallenge/users_mapping.json"
 
 POINTS_BY_RANK = [4, 3, 2]
 
-
 def get_country_flag(country_name):
     try:
         country = pycountry.countries.lookup(country_name)
@@ -28,13 +27,11 @@ def get_country_flag(country_name):
     except LookupError:
         return ""
 
-
 def get_discord_mention(player_id: str, users: list) -> str:
     for user in users:
         if user["userId"] == player_id:
             return user["discordId"]
     return None
-
 
 def load_json(path):
     if os.path.exists(path):
@@ -42,16 +39,23 @@ def load_json(path):
             return json.load(f)
     return {}
 
-
 def update_scores_json(country, players):
     scores = load_json(SCORES_PATH)
 
     if country not in scores:
         scores[country] = []
 
+    country_scores = {entry["user"]: entry["pts"] for entry in scores[country]}
+
     for i, player in enumerate(players):
         pts = POINTS_BY_RANK[i] if i < len(POINTS_BY_RANK) else 1
-        scores[country].append({"pts": pts, "user": player["userId"]})
+        user_id = player["userId"]
+        country_scores[user_id] = country_scores.get(user_id, 0) + pts
+
+    scores[country] = [
+        {"user": user_id, "pts": pts}
+        for user_id, pts in sorted(country_scores.items(), key=lambda x: x[1], reverse=True)
+    ]
 
     with open(SCORES_PATH, "w", encoding="utf-8") as f:
         json.dump(scores, f, indent=2, ensure_ascii=False)
@@ -59,30 +63,35 @@ def update_scores_json(country, players):
     print(f"[✓] Scores mis à jour pour {country}")
     return scores
 
-
-def generate_result_message(country, players, global_scores, new_link):
+def generate_result_message(country, scores):
     flag = get_country_flag(country)
     today = datetime.utcnow().strftime("%d")
 
     msg = f"{flag}  Daily Challenge {today} - Résultats\n"
     medals = ["🥇", "🥈", "🥉"]
-    for i, p in enumerate(players[:3]):
-        msg += f"{medals[i]} {p['mention']}\n"
+    for i, p in enumerate(scores[:3]):
+        msg += f"{medals[i]} {p['mention']} ({p['score']} pts)\n"
 
-    msg += f"\n{flag}  Classement général - Provisoire\n"
-
-    leaderboard = {}
-    for entry in global_scores.get(country, []):
-        leaderboard[entry["user"]] = leaderboard.get(entry["user"], 0) + entry["pts"]
-
-    sorted_leaderboard = sorted(leaderboard.items(), key=lambda x: x[1], reverse=True)
-    symbols = ["🥇", "🥈", "🥉", "🍫"]
-    for i, (user, pts) in enumerate(sorted_leaderboard[:4]):
-        msg += f"{symbols[i]} {user} - {pts}pts\n"
-
-    msg += f"\n{flag}  Daily Challenge {int(today)+1} - Nouveau lien :\n{new_link}"
     return msg
 
+def generate_leaderboard_message(country, global_scores):
+    flag = get_country_flag(country)
+    today = datetime.utcnow().strftime("%d")
+
+    msg = f"{flag}  Classement général - Provisoire\n"
+    leaderboard = global_scores.get(country, [])
+    for i, entry in enumerate(leaderboard[:4]):
+        symbol = ["🥇", "🥈", "🥉", "🍫"][i]
+        msg += f"{symbol} {entry['user']} - {entry['pts']}pts\n"
+
+    return msg
+
+def generate_new_challenge_message(country, new_link):
+    flag = get_country_flag(country)
+    today = datetime.utcnow().strftime("%d")
+
+    msg = f"{flag}  Daily Challenge {int(today)+1} - Nouveau lien :\n{new_link}"
+    return msg
 
 async def process_game_data(client: Geoguessr, link, users):
     print(f"[✓] Récupération des données de la partie : {link}")
@@ -103,22 +112,20 @@ async def process_game_data(client: Geoguessr, link, users):
         display_name = mention if mention else player_name
 
         players.append({
-            "userId": player_id,       # ID stable utilisé pour le score
-            "mention": display_name,   # Pour affichage Discord
+            "userId": player_id,
+            "mention": display_name,
             "score": score
         })
 
     players.sort(key=lambda x: x["score"] or 0, reverse=True)
-    print(f"[✓] Joueurs triés par score : {[p['userId'] for p in players]}")
+    print(f"[✓] Joueurs triés par score : {[p['mention'] for p in players]}")
     return players
-
 
 def push_scores():
     subprocess.run(["git", "add", SCORES_PATH])
     subprocess.run(["git", "commit", "-m", f"update scores {datetime.today().strftime('%Y-%m-%d')}"])
     subprocess.run(["git", "push"])
     print("[✓] Scores push sur GitHub")
-
 
 async def main():
     intents = discord.Intents.default()
@@ -163,22 +170,24 @@ async def main():
             else:
                 print(f"[✓] Lien trouvé : {last_challenge_url}")
 
-            players = await process_game_data(geo_client, last_challenge_url, users)
-            scores = update_scores_json(country_name, players)
-            
-            new_link=last_challenge_url
-            # new_link = await geo_client.generate_challenge(
-            #     map_url, move=False, timeLimit=time_limit, play_map=False
-            # )
+            scores_today = await process_game_data(geo_client, last_challenge_url, users)
+            new_scores = update_scores_json(country_name, scores_today)
 
-            message = generate_result_message(country_name, players, scores, new_link)
-            await channel.send(message)
+            new_link = last_challenge_url  # Ou utilise generate_challenge() si besoin
+
+            result_msg = generate_result_message(country_name, scores_today)
+            leaderboard_msg = generate_leaderboard_message(country_name, new_scores)
+            new_challenge_msg = generate_new_challenge_message(country_name, new_link)
+
+            await channel.send(result_msg)
+            await channel.send(leaderboard_msg)
+            challenge_message = await channel.send(new_challenge_msg)
+            await challenge_message.create_thread(name=f"{country_name} - Lien du jour")
 
         await client.close()
         push_scores()
 
     await client.start(TOKEN)
-
 
 if __name__ == "__main__":
     asyncio.run(main())
