@@ -1,1 +1,4 @@
 discord.py
+geoguessr_async
+pycountry
+dotenv
