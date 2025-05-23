@@ -1,6 +1,104 @@
 {
-  "argentine": [
+  "argentine": [],
+  "allemeagne": [],
+  "Allemagne": [
+    {
+      "user": "65183f23fa133d34a1c57ac1",
+      "pts": 8
+    },
+    {
+      "user": "63f619f14068eb7d4bbb134d",
+      "pts": 6
+    },
+    {
+      "user": "66451451a5194c721aa8a094",
+      "pts": 4
+    },
+    {
+      "user": "5784d9e418aa6a4a74e69061",
+      "pts": 2
+    },
+    {
+      "user": "5e792106d51dd6297c9bd842",
+      "pts": 2
+    },
+    {
+      "user": "630a5a756d2d060dffe2ec6a",
+      "pts": 2
+    },
+    {
+      "user": "6658c692b31af2f10a86a038",
+      "pts": 2
+    },
+    {
+      "user": "615463c9d936a00001cc3e2d",
+      "pts": 2
+    },
+    {
+      "user": "63690b69ab60ef1b425b53d1",
+      "pts": 2
+    }
   ],
-  "allemeagne": [
+  "Argentine": [
+    {
+      "user": "5e3712631e34a03504349945",
+      "pts": 8
+    },
+    {
+      "user": "615463c9d936a00001cc3e2d",
+      "pts": 6
+    },
+    {
+      "user": "5ee7608481efff5d4415e658",
+      "pts": 4
+    },
+    {
+      "user": "63f619f14068eb7d4bbb134d",
+      "pts": 2
+    },
+    {
+      "user": "633339d93d61153b5211a6f2",
+      "pts": 2
+    },
+    {
+      "user": "6658c692b31af2f10a86a038",
+      "pts": 2
+    },
+    {
+      "user": "66451451a5194c721aa8a094",
+      "pts": 2
+    },
+    {
+      "user": "630a5a756d2d060dffe2ec6a",
+      "pts": 2
+    },
+    {
+      "user": "5f29c8819762af0001d89a97",
+      "pts": 2
+    },
+    {
+      "user": "636232550b54d2e4d8931b5f",
+      "pts": 2
+    },
+    {
+      "user": "5784d9e418aa6a4a74e69061",
+      "pts": 2
+    },
+    {
+      "user": "5e8781f3b3ec177638be489a",
+      "pts": 2
+    },
+    {
+      "user": "5e792106d51dd6297c9bd842",
+      "pts": 2
+    },
+    {
+      "user": "65183f23fa133d34a1c57ac1",
+      "pts": 2
+    },
+    {
+      "user": "652b092b117fd12a274870c5",
+      "pts": 2
+    }
   ]
 }
