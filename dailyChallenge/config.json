@@ -1,0 +1,15 @@
+{
+  "time-limit": 60,
+  "country": [
+    {
+      "name": "Allemagne",
+      "channel_id": "1373668852084379749",
+      "map_url": "https://www.geoguessr.com/maps/617d2526ed0f750001c24b21"
+    },
+    {
+      "name": "Argentine",
+      "channel_id": "1373668887832297573",
+      "map_url": "https://www.geoguessr.com/maps/63a3cef9571dcbb3660427c4"
+    }
+  ]
+}
